@@ -14,14 +14,4 @@ const authentication = (salt: string, password: string): string => {
     return crypto.createHmac('sha256', [salt, password].join('/')).update(SECRET).digest('hex');
 };
 
-// Custom Error Handling by extending Error class
-class ErrorResponse extends Error {
-    statusCode: number;
-    // It will take a "message" and "statusCode"
-    constructor(message: string, statusCode: number) {
-        super(message);
-        this.statusCode = statusCode;
-    }
-};
-
-export { random, authentication, ErrorResponse }
+export default { random, authentication }

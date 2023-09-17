@@ -8,11 +8,10 @@ import compression from 'compression';
 // Database connection
 // import connection from "./config/db.config.js";
 
-import { execute } from './services/index.js'
 import router from './router/index.js';
 
 // Config environment variables
-dotenv.config({ path: path.resolve(process.cwd(), 'src/config/.env') });
+dotenv.config({ path: path.resolve(process.cwd(), 'src/.env') });
 
 const server: Express = express();
 server.use(express.json()); // Accept JSON data
