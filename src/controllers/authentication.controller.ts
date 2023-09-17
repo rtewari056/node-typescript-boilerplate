@@ -10,7 +10,7 @@ dotenv.config({ path: path.resolve(process.cwd(), 'src/.env') });
 // @description     Register a user
 // @route           POST /api/auth/register
 // @access          Public
-const register = async (req: Request, res: Response, next: NextFunction) => {
+const register = async (req: Request, res: Response, next: NextFunction): Promise<void | Response<any, Record<string, any>>> => {
     type reqBody = { name: string, email: string, password: string };
 
     try {
@@ -48,7 +48,7 @@ const register = async (req: Request, res: Response, next: NextFunction) => {
 // @description     Login a user
 // @route           POST /api/auth/login
 // @access          Public
-const login = async (req: Request, res: Response, next: NextFunction) => {
+const login = async (req: Request, res: Response, next: NextFunction): Promise<void | Response<any, Record<string, any>>> => {
     type reqBody = { name: string, email: string, password: string };
 
     try {

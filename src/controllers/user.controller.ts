@@ -9,11 +9,9 @@ dotenv.config({ path: path.resolve(process.cwd(), 'src/.env') });
 // @description     Get all users
 // @route           POST /api/getUsers
 // @access          Public
-const getAllUsers = async (req: Request, res: Response, next: NextFunction) => {
+const getAllUsers = async (req: Request, res: Response, next: NextFunction): Promise<void | Response<any, Record<string, any>>> => {
 
     try {
-        console.log(req.body);
-        
         // Get all users from our DB
         const users = await db.getUsers();
 

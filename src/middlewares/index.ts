@@ -6,7 +6,7 @@ import ErrorResponse from '../helpers/error.class.js';
 
 dotenv.config({ path: path.resolve(process.cwd(), 'src/.env') });
 
-const isAuthenticated = async (req: Request, res: Response, next: NextFunction) => {
+const isAuthenticated = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
         const sessionToken: string = req.cookies[process.env.COOOKIE_NAME || 'Node-TypeScript-AUTH'];
 
