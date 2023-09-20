@@ -1,8 +1,8 @@
 import express, { NextFunction, Request, Response } from 'express';
 import dotenv from 'dotenv';
 import path from 'path';
-import db from "../services/index.js";
-import ErrorResponse from '../helpers/error.class.js';
+import db from "../services";
+import ErrorResponse from '../helpers/error.class';
 
 dotenv.config({ path: path.resolve(process.cwd(), 'src/.env') });
 

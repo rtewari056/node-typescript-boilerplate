@@ -8,7 +8,7 @@ import compression from 'compression';
 // Database connection
 // import connection from "./config/db.config.js";
 
-import router from './router/index.js';
+import router from './routes';
 
 // Config environment variables
 dotenv.config({ path: path.resolve(process.cwd(), 'src/.env') });
@@ -21,10 +21,6 @@ server.use(cors({ credentials: true })); // Enable CORS
 server.use(compression()); // Compress responses
 server.use(cookieParser()); // Parse cookies
 
-server.get('/', (req: Request, res: Response) => {
-    res.send('<h1>HELLO FROM Express + TypeScript</h1>');
-});
-
 // API Routes
 server.use("/api", router);
 
@@ -35,11 +31,10 @@ server.use((err: any, req: Request, res: Response, next: NextFunction) => {
     const statusCode: number = err.statusCode || 500;
     const errorMessage: string = err.message || 'Server Error';
 
-    res.status(statusCode).json({
+    return res.status(statusCode).json({
         success: false,
         error: errorMessage,
     });
-    return;
 });
 
 server.listen(PORT, () => {

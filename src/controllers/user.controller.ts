@@ -1,6 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import helper from "../helpers/index.js";
-import db from "../services/index.js";
+import db from "../services";
 import dotenv from 'dotenv';
 import path from 'path';
 
