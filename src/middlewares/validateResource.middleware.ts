@@ -1,16 +1,16 @@
 import { NextFunction, Request, Response } from 'express';
 import { AnyZodObject, ZodError } from 'zod';
 
-const validateResource = (schema: AnyZodObject) => (req: Request, res: Response, next: NextFunction) => {
+const validateResource = (schema: AnyZodObject) => async (req: Request, res: Response, next: NextFunction) => {
     try {
-        schema.parse({
+        await schema.parseAsync({
             body: req.body,
             query: req.query,
             params: req.params
         })
 
         // If schema parsed successfully, call next()
-        next();
+        return next();
     } catch (error: unknown) {
         // console.log('Zod schema error type => ', typeof e);
         

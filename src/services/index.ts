@@ -20,6 +20,16 @@ const getUserByEmail = async (email: string): Promise<RowDataPacket> => {
     return results;
 }
 
+const getVerifiedUserByEmail = async (email: string): Promise<RowDataPacket> => { 
+    const [[results]] = await connection.query<RowDataPacket[]>('SELECT * FROM user WHERE LOWER(user.email) = LOWER(?) AND user.is_verified = TRUE LIMIT 1;', [email]);
+    return results;
+}
+
+const getUnverifiedUserByEmail = async (email: string): Promise<RowDataPacket> => { 
+    const [[results]] = await connection.query<RowDataPacket[]>('SELECT * FROM user WHERE LOWER(user.email) = LOWER(?) AND user.is_verified = FALSE LIMIT 1;', [email]);
+    return results;
+}
+
 const createUser = async (user: User): Promise<RowDataPacket[]> => { 
     const [results] = await connection.query<RowDataPacket[]>('INSERT INTO user (`name`,`email`, `salt`, `password`, `verification_code`) VALUES (?, ?, ?, ?, ?);', [user.name, user.email, user.salt, user.password, user.verificationCode]);
     return results;
@@ -44,6 +54,14 @@ const updateUserVerificationStatus = async (email: string, isVerified: boolean):
     await connection.query<RowDataPacket[]>('UPDATE user SET user.is_verified = ?, user.verification_code = NULL  WHERE user.email = ?;', [isVerified ? 1 : 0, email]);
 }
 
-export default { execute, getUsers, getUserByEmail, createUser, getUserBySessionToken, deleteUser, updateSessionToken, updateUserVerificationStatus };
+const updatePasswordResetCode = async (email: string, passwordResetCode: string | null): Promise<RowDataPacket[]> => {
+    const [results] = await connection.query<RowDataPacket[]>('UPDATE user SET user.password_reset_code = ? WHERE user.email = ? AND user.is_verified = TRUE;', [passwordResetCode, email]);
+    return results;
+}
 
-// module.exports = { execute, getUserByEmail, createUser, getUserBySessionToken, deleteUser, updateSessionToken };
+const updateUserPassword = async (email: string, password: string): Promise<RowDataPacket> => {
+    const [[results]] = await connection.query<RowDataPacket[]>('UPDATE user SET user.password = ? WHERE user.email = ?;', [password, email]);
+    return results;
+}
+
+export default { execute, getUsers, getUserByEmail, getVerifiedUserByEmail, getUnverifiedUserByEmail, createUser, getUserBySessionToken, deleteUser, updateSessionToken, updateUserVerificationStatus, updatePasswordResetCode, updateUserPassword };
