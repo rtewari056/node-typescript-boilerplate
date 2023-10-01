@@ -6,4 +6,18 @@ interface EmailPayload {
     HTML: string;
 };
 
-export { EmailPayload }
+interface TokenSigningPayload {
+    id: number;
+    name: string;
+    email: string;
+};
+
+interface DecodedTokenData {
+    id: number;
+    name: string;
+    email: string;
+    iat: number
+    exp: number
+};
+
+export { EmailPayload, TokenSigningPayload, DecodedTokenData }

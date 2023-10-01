@@ -14,7 +14,11 @@ const getAllUsers = async (req: Request, res: Response, next: NextFunction): Pro
         // Get all users from our DB
         const users = await db.getUsers();
 
-        return res.status(200).json(users);
+        return res.status(200).json({
+            success: true,
+            decoded: res.locals.user,
+            users
+        });
     } catch (error: unknown) {
         return next(error);
     }

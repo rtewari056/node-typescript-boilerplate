@@ -1,26 +1,39 @@
-import express, { NextFunction, Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import dotenv from 'dotenv';
 import path from 'path';
-import db from "../services";
+import db from '../services';
 import ErrorResponse from '../helpers/error.class';
+import { verifyJwt } from '../utils/jwt.util';
 
 dotenv.config({ path: path.resolve(process.cwd(), 'src/.env') });
 
 const isAuthenticated = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-        const sessionToken: string = req.cookies[process.env.COOOKIE_NAME || 'Node-TypeScript-AUTH'];
+        // If authorization header not present set accesstoken to empty string else extract the token using regex
+        const accessToken: string = (req.headers.authorization || '').replace(/^Bearer\s/, '');
 
-        if (!sessionToken) {
+        // Check if access token present or not
+        if (!accessToken) {
             return next(new ErrorResponse('Not authorized to access this route', 401));
         }
 
-        const existingUser = await db.getUserBySessionToken(sessionToken);
+        // Get decoded data from access token
+        const decoded = verifyJwt(accessToken, 'ACCESS_TOKEN_PUBLIC_KEY');
 
-        if (!existingUser) {
-            return next(new ErrorResponse('No user found', 404));
+        // If token verified and decoded successfully, set user object to res.locals for further use
+        if (!decoded) {
+            return next(new ErrorResponse('Not authorized to access this route', 401));
         }
-
-        // req.body.existingUser = existingUser;
+        
+        // Get existing user from decoded data extracted from access token
+        const existingUser = await db.getUserByEmail(decoded.email);
+        
+        if (!existingUser) {
+            return next(new ErrorResponse('Not authorized to access this route', 401));
+        }
+        
+        // Set decoded data for further use
+        res.locals.user = decoded;
         next();
 
     } catch (error: unknown) {

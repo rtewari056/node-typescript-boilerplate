@@ -8,6 +8,9 @@ import ErrorResponse from '../helpers/error.class';
 import sendEmail from '../utils/mailer.util';
 
 import { CreateUserInput, VerifyUserInput, forgotPasswordInput, resetPasswordInput } from '../schema/user.schema';
+import { CreateSessionInput } from '../schema/auth.schema';
+import authService from '../services/auth.service';
+import { TokenSigningPayload } from '../types';
 
 dotenv.config({ path: path.resolve(process.cwd(), 'src/.env') });
 
@@ -70,7 +73,7 @@ const register = async (req: Request<{}, {}, CreateUserInput>, res: Response, ne
 const verifyUser = async (req: Request<VerifyUserInput>, res: Response, next: NextFunction): Promise<void | Response<any, Record<string, any>>> => {
 
     const { id, verificationCode } = req.params;
-    
+
     try {
         // Check if user is registered and not verified
         const userExists = await db.getUnverifiedUserByEmail(id);
@@ -79,7 +82,7 @@ const verifyUser = async (req: Request<VerifyUserInput>, res: Response, next: Ne
         if (!userExists || userExists.verification_code !== verificationCode) {
             return next(new ErrorResponse('Invalid link', 400));
         }
-        
+
         // Update user verification status
         await db.updateUserVerificationStatus(userExists.email, true);
 
@@ -106,8 +109,8 @@ const forgotPassword = async (req: Request<{}, {}, forgotPasswordInput>, res: Re
         const user = await db.getVerifiedUserByEmail(email);
 
         // Check if user is not registered and verified
-        if(!user) {
-            return next( new ErrorResponse('Email could not be sent', 400));
+        if (!user) {
+            return next(new ErrorResponse('Email could not be sent', 400));
         }
 
         // Generate a password reset code 
@@ -155,8 +158,8 @@ const resetPassword = async (req: Request<resetPasswordInput['params'], {}, rese
         const user = await db.getUserByEmail(id);
 
         // Check if user is registered, having password reset code and it matches with code sent by the user
-        if(!user || !user.passwordResetCode || user.passwordResetCode !== passwordResetCode) {
-            return next( new ErrorResponse('Password could not be reset', 400));
+        if (!user || !user.passwordResetCode || user.passwordResetCode !== passwordResetCode) {
+            return next(new ErrorResponse('Password could not be reset', 400));
         }
 
         // Update password reset code to null so it can't be used anymore
@@ -180,47 +183,53 @@ const resetPassword = async (req: Request<resetPasswordInput['params'], {}, rese
 // @description     Login a user
 // @route           POST /api/auth/login
 // @access          Public
-const login = async (req: Request, res: Response, next: NextFunction): Promise<void | Response<any, Record<string, any>>> => {
-    type reqBody = { name: string, email: string, password: string };
+const login = async (req: Request<{}, {}, CreateSessionInput>, res: Response, next: NextFunction) => {
+    const { email, password } = req.body;
 
     try {
-        const { email, password }: reqBody = req.body;
-
-        // Check if any of them is undefined
-        if (!email || !password) {
-            return next(
-                new ErrorResponse('Please provide email and password', 400)
-            );
-        }
-
-        // Check if user already exists in our DB
         const user = await db.getUserByEmail(email);
 
+        // Check if user is present in our database without letting the user know if he/she is registered or not 
         if (!user) {
-            return next(new ErrorResponse('Invalid credentials', 400));
+            return next(new ErrorResponse('Invalid email or password', 403));
         }
 
-        const expectedHash: string = helper.authentication(user.salt, password); // Create hashed password using saved salt and password of user
+        if (!user.is_verified) {
+            return next(new ErrorResponse('Please verify your email', 400));
+        }
+
+        // Create hashed password using saved salt and password of user
+        const expectedHash: string = helper.authentication(user.salt, password); 
 
         // If expected hashed password and saved hashed password not matches
         if (user.password !== expectedHash) {
-            return next(new ErrorResponse('Invalid credentials', 403));
+            return next(new ErrorResponse('Invalid email or password', 403));
         }
 
-        const sessionToken: string = helper.authentication(helper.random(), email); // Generate session token
+        // Token creation payload
+        const payload: TokenSigningPayload = {
+            id: user.id,
+            email: user.email,
+            name: user.name
+        };
 
-        // Save session token in database
-        await db.updateSessionToken(email, sessionToken);
+        // Sign a access token
+        const accessToken: string = authService.signAccessToken(payload);
+        
+        // Sign a refresh token
+        const refreshToken: string = authService.signRefreshToken(payload);
 
-        const updatedUser = await db.getUserByEmail(email);
+        // Send the tokens
+        return res.status(200).json({
+            success: true,
+            accessToken,
+            refreshToken,
+            message: 'Login successfully'
+        });
 
-        res.cookie(process.env.COOOKIE_NAME || 'Node-TypeScript-AUTH', sessionToken, { domain: 'localhost' });
-
-        return res.status(200).json(updatedUser);
     } catch (error: unknown) {
         return next(error);
     }
-};
-
+}
 
 export default { register, verifyUser, login, forgotPassword, resetPassword };

@@ -5,9 +5,6 @@ import path from 'path';
 import cookieParser from 'cookie-parser';
 import compression from 'compression';
 
-// Database connection
-// import connection from "./config/db.config.js";
-
 import router from './routes';
 
 // Config environment variables

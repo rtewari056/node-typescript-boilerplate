@@ -5,6 +5,6 @@ import auth from '../middlewares/index.js'
 
 const router: Router = express.Router();
 
-router.route('/users').get(auth.isAuthenticated, user.getAllUsers);
+router.route('/data').get(auth.isAuthenticated, user.getAllUsers);
 
 export default router;
