@@ -1,11 +1,15 @@
 import { NextFunction, Request, Response } from 'express';
 import dotenv from 'dotenv';
 import path from 'path';
+dotenv.config({ path: path.resolve(process.cwd(), 'src/.env') });
+
+// Service
 import db from '../services';
+
+// Helper
 import ErrorResponse from '../helpers/error.class';
 import { verifyJwt } from '../utils/jwt.util';
 
-dotenv.config({ path: path.resolve(process.cwd(), 'src/.env') });
 
 const isAuthenticated = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {

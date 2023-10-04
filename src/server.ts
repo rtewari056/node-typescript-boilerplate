@@ -19,7 +19,7 @@ server.use(compression()); // Compress responses
 server.use(cookieParser()); // Parse cookies
 
 // API Routes
-server.use("/api", router);
+server.use('/api', router);
 
 // Global Error Handler Middleware (Should be at the end of all middlewares)
 server.use((err: any, req: Request, res: Response, next: NextFunction) => {

@@ -20,4 +20,12 @@ interface DecodedTokenData {
     exp: number
 };
 
-export { EmailPayload, TokenSigningPayload, DecodedTokenData }
+interface User { 
+    name: string;
+    email: string;
+    salt: string;
+    password: string;
+    verificationCode: string; 
+};
+
+export { EmailPayload, TokenSigningPayload, DecodedTokenData, User }

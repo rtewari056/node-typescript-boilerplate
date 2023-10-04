@@ -1,13 +1,13 @@
-import { NextFunction, Request, Response } from "express";
-import db from "../services";
+import { NextFunction, Request, Response } from 'express';
+import db from '../services';
 import dotenv from 'dotenv';
 import path from 'path';
 
 dotenv.config({ path: path.resolve(process.cwd(), 'src/.env') });
 
 // @description     Get all users
-// @route           POST /api/getUsers
-// @access          Public
+// @route           GET /api/getUsers
+// @access          Private
 const getAllUsers = async (req: Request, res: Response, next: NextFunction): Promise<void | Response<any, Record<string, any>>> => {
 
     try {

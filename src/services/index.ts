@@ -1,9 +1,10 @@
-import { RowDataPacket } from "mysql2/promise";
+import { RowDataPacket } from 'mysql2/promise';
 
 // Database connection
-import connection from "../config/db.config";
+import connection from '../config/db.config';
 
-type User = { name: string, email: string, salt: string, password: string, verificationCode: string };
+// Type
+import { User } from '../types';
 
 const execute = async (sql: string, params?: (string | number)[]): Promise<RowDataPacket[]> => { 
     const [results] = (params) ? await connection.query<RowDataPacket[]>(sql, params) : await connection.query<RowDataPacket[]>(sql);
@@ -45,11 +46,6 @@ const deleteUser = async(email: string): Promise<RowDataPacket[]> => {
     return results;
 }
 
-const updateSessionToken = async(email: string, sessionToken: string): Promise<RowDataPacket[]> => {
-    const [results] = await connection.query<RowDataPacket[]>('Update user SET user.session_token = ? WHERE user.email = ?;', [sessionToken, email]);
-    return results;
-}
-
 const updateUserVerificationStatus = async (email: string, isVerified: boolean): Promise<void> => {
     await connection.query<RowDataPacket[]>('UPDATE user SET user.is_verified = ?, user.verification_code = NULL  WHERE user.email = ?;', [isVerified ? 1 : 0, email]);
 }
@@ -64,4 +60,4 @@ const updateUserPassword = async (email: string, password: string): Promise<RowD
     return results;
 }
 
-export default { execute, getUsers, getUserByEmail, getVerifiedUserByEmail, getUnverifiedUserByEmail, createUser, getUserBySessionToken, deleteUser, updateSessionToken, updateUserVerificationStatus, updatePasswordResetCode, updateUserPassword };
+export default { execute, getUsers, getUserByEmail, getVerifiedUserByEmail, getUnverifiedUserByEmail, createUser, getUserBySessionToken, deleteUser, updateUserVerificationStatus, updatePasswordResetCode, updateUserPassword };

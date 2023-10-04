@@ -1,18 +1,26 @@
 import { NextFunction, Request, Response } from 'express';
 import dotenv from 'dotenv';
 import path from 'path';
-
-import helper from '../helpers';
-import db from '../services';
-import ErrorResponse from '../helpers/error.class';
-import sendEmail from '../utils/mailer.util';
-
-import { CreateUserInput, VerifyUserInput, forgotPasswordInput, resetPasswordInput } from '../schema/user.schema';
-import { CreateSessionInput } from '../schema/auth.schema';
-import authService from '../services/auth.service';
-import { TokenSigningPayload } from '../types';
-
 dotenv.config({ path: path.resolve(process.cwd(), 'src/.env') });
+
+// Helper
+import helper from '../helpers';
+import ErrorResponse from '../helpers/error.class';
+
+// Service
+import db from '../services';
+import authService from '../services/auth.service';
+
+// Util
+import sendEmail from '../utils/mailer.util';
+import { verifyJwt } from '../utils/jwt.util';
+
+// Zod Type
+import { CreateUserInput, VerifyUserInput, forgotPasswordInput, resetPasswordInput } from '../schema/user.schema';
+import { getAccessTokenInput, LoginUserInput } from '../schema/auth.schema';
+
+// Custom Type
+import { TokenSigningPayload } from '../types';
 
 // @description     Register a user
 // @route           POST /api/auth/register
@@ -183,7 +191,7 @@ const resetPassword = async (req: Request<resetPasswordInput['params'], {}, rese
 // @description     Login a user
 // @route           POST /api/auth/login
 // @access          Public
-const login = async (req: Request<{}, {}, CreateSessionInput>, res: Response, next: NextFunction) => {
+const login = async (req: Request<{}, {}, LoginUserInput>, res: Response, next: NextFunction) => {
     const { email, password } = req.body;
 
     try {
@@ -199,7 +207,7 @@ const login = async (req: Request<{}, {}, CreateSessionInput>, res: Response, ne
         }
 
         // Create hashed password using saved salt and password of user
-        const expectedHash: string = helper.authentication(user.salt, password); 
+        const expectedHash: string = helper.authentication(user.salt, password);
 
         // If expected hashed password and saved hashed password not matches
         if (user.password !== expectedHash) {
@@ -215,7 +223,7 @@ const login = async (req: Request<{}, {}, CreateSessionInput>, res: Response, ne
 
         // Sign a access token
         const accessToken: string = authService.signAccessToken(payload);
-        
+
         // Sign a refresh token
         const refreshToken: string = authService.signRefreshToken(payload);
 
@@ -232,4 +240,50 @@ const login = async (req: Request<{}, {}, CreateSessionInput>, res: Response, ne
     }
 }
 
-export default { register, verifyUser, login, forgotPassword, resetPassword };
+// @description     Get an access token
+// @route           POST /api/auth/refresh-token
+// @access          Public
+const getAccessToken = async (req: Request<{}, {}, getAccessTokenInput>, res: Response, next: NextFunction) => {
+    const { refreshToken } = req.body;
+
+    try {
+
+        if (!refreshToken) {
+            return next(new ErrorResponse('Not authorized to access this route', 401));
+        }
+
+        // Get decoded data from refresh token
+        const decoded = verifyJwt(refreshToken, 'REFRESH_TOKEN_PUBLIC_KEY');
+
+        // If token verified and decoded successfully, set user object to res.locals for further use
+        if (!decoded) {
+            return next(new ErrorResponse('Not authorized to access this route', 401));
+        }
+
+        // Token creation payload
+        const payload: TokenSigningPayload = {
+            id: decoded.id,
+            email: decoded.email,
+            name: decoded.name
+        };
+
+        // Sign a access token
+        const newAccessToken: string = authService.signAccessToken(payload);
+
+        // Sign a refresh token
+        const newRefreshToken: string = authService.signRefreshToken(payload);
+
+        // Send the tokens
+        return res.status(201).json({
+            success: true,
+            accessToken: newAccessToken,
+            refreshToken: newRefreshToken,
+            message: 'New tokens generated successfully'
+        });
+
+    } catch (error: unknown) {
+        return next(error);
+    }
+}
+
+export default { register, verifyUser, login, forgotPassword, resetPassword, getAccessToken };

@@ -1,11 +1,11 @@
 import nodemailer from 'nodemailer';
-import dotenv from "dotenv";
-import path from "path";
+import dotenv from 'dotenv';
+import path from 'path';
 import SMTPTransport from 'nodemailer/lib/smtp-transport';
-
-import { EmailPayload } from '../types';
-
 dotenv.config({ path: path.resolve(process.cwd(), 'src/.env') });
+
+// Types
+import { EmailPayload } from '../types';
 
 // To create test credentials for email testing
 // const createTestCreds = async() => {
@@ -23,7 +23,7 @@ const sendEmail = async (emailPayload: EmailPayload): Promise<void> => {
             user: process.env.SMTP_USER,
             pass: process.env.SMTP_PASSWORD,
         }
-    } as SMTPTransport.Options );
+    } as SMTPTransport.Options);
 
     // Sending email
     transporter.sendMail(emailPayload, (err, info) => {
@@ -32,7 +32,6 @@ const sendEmail = async (emailPayload: EmailPayload): Promise<void> => {
         } else {
             console.log(info);
             console.log('Preview URL: ', nodemailer.getTestMessageUrl(info));
-            
         }
     });
 };

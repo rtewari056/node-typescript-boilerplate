@@ -1,6 +1,6 @@
 import { object, string, TypeOf } from 'zod';
 
-const createSessionSchema = object({
+const loginUserSchema = object({
     body: object({
         email: string({
             required_error: 'Email is required'
@@ -11,6 +11,16 @@ const createSessionSchema = object({
     })
 });
 
-type CreateSessionInput = TypeOf<typeof createSessionSchema>['body'];
+const getAccessTokenSchema = object({
+    body: object({
+        refreshToken: string({
+            required_error: 'Refresh token is required'
+        }),
+    })
+});
 
-export { createSessionSchema, CreateSessionInput };
+type LoginUserInput = TypeOf<typeof loginUserSchema>['body'];
+type getAccessTokenInput = TypeOf<typeof getAccessTokenSchema>['body'];
+
+
+export { loginUserSchema, LoginUserInput, getAccessTokenSchema, getAccessTokenInput };

@@ -1,10 +1,11 @@
-import jwt, { JwtPayload, SignOptions } from 'jsonwebtoken';
+import jwt, { SignOptions } from 'jsonwebtoken';
 import dotenv from 'dotenv';
-import path from 'path';
 import fs from 'fs';
-import { DecodedTokenData } from '../types';
-
+import path from 'path';
 dotenv.config({ path: path.resolve(process.cwd(), 'src/.env') });
+
+// Types
+import { DecodedTokenData } from '../types';
 
 // Sign and return JWT token
 const signJwt = (

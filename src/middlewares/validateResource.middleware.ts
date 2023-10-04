@@ -12,9 +12,7 @@ const validateResource = (schema: AnyZodObject) => async (req: Request, res: Res
         // If schema parsed successfully, call next()
         return next();
     } catch (error: unknown) {
-        // console.log('Zod schema error type => ', typeof e);
-        
-        // If it's a validation error
+        // If it's a zod validation error
         if(error instanceof ZodError) {
             return res.status(400).json({
                 success: false,
