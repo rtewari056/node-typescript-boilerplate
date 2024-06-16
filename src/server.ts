@@ -4,36 +4,43 @@ import dotenv from 'dotenv';
 import path from 'path';
 import cookieParser from 'cookie-parser';
 import compression from 'compression';
+import log from './helpers/logger';
 
 import router from './routes';
 
 // Config environment variables
 dotenv.config({ path: path.resolve(process.cwd(), 'src/.env') });
 
+// Set up express server
 const server: Express = express();
 server.use(express.json()); // Accept JSON data
-const PORT: string | undefined = process.env.PORT || '5000';
-
 server.use(cors({ credentials: true })); // Enable CORS
 server.use(compression()); // Compress responses
 server.use(cookieParser()); // Parse cookies
 
+const PORT: string | undefined = process.env.PORT || '5000';
+
+// Log all requests using logger service (Should be at the beginning of all routes and middlewares)
+server.use((req: Request, res: Response, next: NextFunction) => {
+    log.info(`${req.url} (${req.method})`);
+    next();
+})
+
 // API Routes
 server.use('/api', router);
 
-// Global Error Handler Middleware (Should be at the end of all middlewares)
+// Global Error Handler Middleware (Should be at the end of all routes and middlewares)
 server.use((err: any, req: Request, res: Response, next: NextFunction) => {
-    console.error(err.message);
+    log.error(err.message); // Log errors for debugging
 
     const statusCode: number = err.statusCode || 500;
-    const errorMessage: string = err.message || 'Server Error';
 
     return res.status(statusCode).json({
         success: false,
-        error: errorMessage,
+        error: err.message || 'Server Error',
     });
 });
 
 server.listen(PORT, () => {
-    console.log(`⚡️ Server is running at http://localhost:${PORT}`);
-})
+    log.info(`⚡️ Server is running at http://localhost:${PORT}`)
+});

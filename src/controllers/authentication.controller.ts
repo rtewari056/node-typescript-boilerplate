@@ -230,6 +230,10 @@ const login = async (req: Request<{}, {}, LoginUserInput>, res: Response, next: 
         // Send the tokens
         return res.status(200).json({
             success: true,
+            user: {
+                name: user.name,
+                email: user.email
+            },
             accessToken,
             refreshToken,
             message: 'Login successfully'
